@@ -29,7 +29,7 @@ public class DirectoryScanner {
 	
 	public DirectoryScanner(Collection<Path> dirsToScan) throws IOException {
 		for (Path dir : dirsToScan) {
-			List<Path> filesInDir = listFilesRecursively(dir);
+			List<Path> filesInDir = listFilesRecursively(dir, 1);
 			allFiles.addAll(filesInDir);
 			log.trace("Directory {} contains {} files recursively", dir.toString(), filesInDir.size());
 		}
@@ -86,13 +86,15 @@ public class DirectoryScanner {
 		return filteredFiles;
 	}
 
-	private List<Path> listFilesRecursively(Path dir) throws IOException {
+	private List<Path> listFilesRecursively(Path dir, int depth) throws IOException {
 		List<Path> files = new ArrayList<>();
 		
 		try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)) {
 			for (Path dirEntry : dirStream) {
 				if (Files.isDirectory(dirEntry)) {
-					files.addAll(listFilesRecursively(dirEntry));
+					if (depth > 1) {
+						files.addAll(listFilesRecursively(dirEntry, depth - 1));
+					}
 				} else if (Files.isRegularFile(dirEntry)) {
 					files.add(dirEntry);
 				}
