@@ -187,7 +187,7 @@ public class DigitisedThesisParser extends AbstractParser {
 						inProgress);
 
 				log.info("Row {}", rowCount++);
-				log.info("\tCollection: {}", collectionName);
+				log.info("\tCollection: {}", targetCollectionName);
 				log.info("\tMetadata: ({} items) {}", metadata.size(), metadata);
 				log.info("\tBitstreams: ({} items) {}", bitstreams.size(), bitstreams);
 
