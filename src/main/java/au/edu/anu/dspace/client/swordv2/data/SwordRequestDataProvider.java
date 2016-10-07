@@ -7,4 +7,6 @@ public interface SwordRequestDataProvider {
 	public List<SwordRequestData> getSwordRequests();
 	
 	public void updateRequestStatus(SwordRequestData data, boolean isSuccess);
+	
+	public boolean isDryRun();
 }

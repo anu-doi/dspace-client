@@ -57,7 +57,6 @@ public class DigitisedThesisParser extends AbstractParser {
 	private boolean inProgress = true;
 	private ThesisTracker thesisTracker;
 	private AnuCatalogueService catalogueSvc;
-	private CrosswalkResolver crosswalkResolver;
 
 	public DigitisedThesisParser(String[] args) throws ParseException, JAXBException, IOException,
 			InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -67,8 +66,8 @@ public class DigitisedThesisParser extends AbstractParser {
 		parseCollectionName();
 		parseInProgressFlag();
 		parseThesisTracker();
+		parseDryRun();
 
-		crosswalkResolver = new CrosswalkResolver();
 		catalogueSvc = new AnuCatalogueService();
 
 		List<Path> filesToUpload;
@@ -133,6 +132,7 @@ public class DigitisedThesisParser extends AbstractParser {
 		options.addOption("d", "directoryfile", true, "file containing directories to scan for new files");
 		options.addOption("f", "file", true, "file to upload");
 		options.addOption("x", "exclude", true, "file containing B-Numbers already uploaded");
+		options.addOption("n", "dry-run", false, "flag to incidicate it's a dry run i.e. no changes will be made");
 		return options;
 	}
 
@@ -206,6 +206,12 @@ public class DigitisedThesisParser extends AbstractParser {
 		}
 		
 		return bitstreams;
+	}
+
+	private void parseDryRun() {
+		if (parsedCmdLine.hasOption("dry-run")) {
+			this.isDryRun = true;
+		}
 	}
 
 	private void parseInProgressFlag() {

@@ -89,6 +89,11 @@ public class SwordProcessorTest {
 				
 			}
 
+			@Override
+			public boolean isDryRun() {
+				return false;
+			}
+			
 		};
 
 		swordProcessor = new SwordProcessor(swordClient, serverInfo, provider);
@@ -134,6 +139,10 @@ public class SwordProcessorTest {
 				
 			}
 
+			@Override
+			public boolean isDryRun() {
+				return false;
+			}
 
 		};
 

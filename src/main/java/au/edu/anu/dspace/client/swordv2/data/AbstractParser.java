@@ -13,9 +13,18 @@ import java.util.List;
 public abstract class AbstractParser implements SwordRequestDataProvider  {
 
 	protected final List<SwordRequestData> swordRequests = new ArrayList<SwordRequestData>();
+	
+	protected boolean isDryRun = false;
+	
 
 	@Override
 	public List<SwordRequestData> getSwordRequests() {
 		return swordRequests;
 	}
+
+	@Override
+	public boolean isDryRun() {
+		return isDryRun;
+	}
+	
 }
