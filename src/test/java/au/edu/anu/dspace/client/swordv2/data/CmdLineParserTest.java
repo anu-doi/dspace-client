@@ -5,11 +5,13 @@ package au.edu.anu.dspace.client.swordv2.data;
 
 import static org.junit.Assert.assertThat;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +21,9 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +34,9 @@ import org.slf4j.LoggerFactory;
 public class CmdLineParserTest {
 	
 	private static final Logger log = LoggerFactory.getLogger(CmdLineParserTest.class);
+	
+	@Rule
+	public TemporaryFolder tmpFolder = new TemporaryFolder();
 	
 	private CmdLineParser cmdLineParser;
 	
@@ -81,7 +88,7 @@ public class CmdLineParserTest {
 	 */
 	@Test
 	public void testGetMetadata() throws Exception {
-		Map<String, Set<String>> metadata;
+		SwordMetadata metadata;
 
 		cmdLineParser = new CmdLineParser(new String[] { "-m", "title=abc" });
 		metadata = cmdLineParser.getSwordRequests().get(0).getMetadata();
@@ -120,9 +127,13 @@ public class CmdLineParserTest {
 	 */
 	@Test
 	public void testGetBitstreams() throws Exception {
-		cmdLineParser = new CmdLineParser(new String[] { "-c", "Test Collection", "C:\\Temp",
-				"C:\\Test Folder\\Test File" });
-		assertThat(cmdLineParser.getSwordRequests().get(0).getBitstreams(), Matchers.<BitstreamInfo> iterableWithSize(2));
+		File file1 = tmpFolder.newFile();
+		File file2 = tmpFolder.newFile();
+		cmdLineParser = new CmdLineParser(new String[] { "-c", "Test Collection", file1.getAbsolutePath(),
+				file2.getAbsolutePath() });
+		List<SwordRequestData> swordRequests = cmdLineParser.getSwordRequests();
+		SwordRequestData swordRequest = swordRequests.get(0);
+		assertThat(swordRequest.getBitstreams(), Matchers.<BitstreamInfo> iterableWithSize(2));
 	}
 
 }

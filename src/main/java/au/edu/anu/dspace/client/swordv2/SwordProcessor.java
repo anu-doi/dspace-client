@@ -37,6 +37,7 @@ import org.swordapp.client.UriRegistry;
 
 import au.edu.anu.dspace.client.WorkflowException;
 import au.edu.anu.dspace.client.swordv2.data.BitstreamInfo;
+import au.edu.anu.dspace.client.swordv2.data.SwordMetadata;
 import au.edu.anu.dspace.client.swordv2.data.SwordRequestData;
 import au.edu.anu.dspace.client.swordv2.data.SwordRequestDataProvider;
 import au.edu.anu.dspace.client.swordv2.tasks.AddToMediaResourceTask;
@@ -93,17 +94,15 @@ public class SwordProcessor {
 					// create a resource if collection name and title is
 					// provided
 					SWORDCollection collection = getCollectionNamed(sd, iData.getCollectionName());
-					String title = getTitle(iData.getMetadata());
 					Deposit metadataDeposit = createMetadataDeposit(iData.getMetadata());
-					DepositReceipt depositReceipt = depositResource(collection, metadataDeposit, title);
+					DepositReceipt depositReceipt = depositResource(collection, metadataDeposit, iData.getMetadata().getTitle());
 					editLink = depositReceipt.getEditLink().getHref();
 					editMediaLink = depositReceipt.getEditMediaLink().getHref();
 				} else if (iData.getEditMediaLink() != null) {
 					// read resource url from command line parameters.
 					editMediaLink = iData.getEditMediaLink();
 					Deposit metadataDeposit = createMetadataDeposit(iData.getMetadata());
-					String title = getTitle(iData.getMetadata());
-					DepositReceipt depositReceipt = depositResource(editMediaLink, metadataDeposit, title);
+					DepositReceipt depositReceipt = depositResource(editMediaLink, metadataDeposit, iData.getMetadata().getTitle());
 				}
 
 				// submit files to media link url
@@ -196,45 +195,11 @@ public class SwordProcessor {
 	}
 
 
-	private String getTitle(Map<String, Set<String>> metadata) {
-		String title = null;
-		if (title == null && metadata.containsKey("dc.title")) {
-			try {
-				title = metadata.get("dc.title").iterator().next();
-			} catch (NoSuchElementException e) {
-				// no op
-			}
-		}
-		
-		if (title == null && metadata.containsKey("dc-title")) {
-			try {
-				title = metadata.get("dc-title").iterator().next();
-			} catch (NoSuchElementException e) {
-				// no op
-			}
-		}
-		
-		if (title == null && metadata.containsKey("title")) {
-			try {
-				title = metadata.get("title").iterator().next();
-			} catch (NoSuchElementException e) {
-				// no op
-			}
-		}
-		
-		// couldn't find a title from metadata
-		if (title == null || title.trim().length() == 0) {
-			title = "=== No title ===";
-		}
-		return title;
-	}
-
-
-	private Deposit createMetadataDeposit(Map<String, Set<String>> metadata) throws WorkflowException {
+	private Deposit createMetadataDeposit(SwordMetadata metadata) throws WorkflowException {
 		Deposit resourceDeposit = new Deposit();
 		EntryPart ep = new EntryPart();
 	
-		for (Entry<String, Set<String>> metadataEntry : metadata.entrySet()) {
+		for (Entry<String, List<String>> metadataEntry : metadata.entrySet()) {
 			for (String value : metadataEntry.getValue()) {
 				QName qName = createQName(metadataEntry.getKey());
 				ep.addSimpleExtension(qName, value);

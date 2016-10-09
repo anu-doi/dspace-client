@@ -76,7 +76,7 @@ public class CsvFileParser extends AbstractParser {
 			// iterate over each row
 			for (CSVRecord record : csvParser) {
 				String collectionName = null;
-				Map<String, Set<String>> metadata = new HashMap<>();
+				SwordMetadata metadata = new SwordMetadata();
 				// using a linked hashset so the order of bitstreams is maintained
 				Set<BitstreamInfo> bitstreams = new LinkedHashSet<>();
 
@@ -118,7 +118,7 @@ public class CsvFileParser extends AbstractParser {
 		bitstreams.add(new BitstreamInfo(bitstreamPath));
 	}
 
-	private void processMetadataField(Map<String, Set<String>> metadata, String header, String value) {
+	private void processMetadataField(SwordMetadata metadata, String header, String value) {
 		// split values by semicolons that aren't preceded by backslash as escape character
 		List<String> values = new SplitWithEscapeChar(value, ";", "\\").getParts();
 		
@@ -126,12 +126,7 @@ public class CsvFileParser extends AbstractParser {
 			header = header.split(" ", 2)[0];
 		}
 		
-		if (!metadata.containsKey(header)) {
-			// using a linked hashset so the order of values for a field is maintained
-			metadata.put(header, new LinkedHashSet<>(values));
-		} else {
-			metadata.get(header).addAll(values);
-		}
+		metadata.add(header, values);
 	}
 
 }

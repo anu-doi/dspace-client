@@ -15,14 +15,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.xml.bind.JAXBException;
@@ -37,11 +33,11 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dspace.client.swordv2.data.AbstractParser;
 import au.edu.anu.dspace.client.swordv2.data.BitstreamInfo;
+import au.edu.anu.dspace.client.swordv2.data.SwordMetadata;
 import au.edu.anu.dspace.client.swordv2.data.SwordRequestData;
 import au.edu.anu.dspace.client.swordv2.digitisation.DigitisedItemInfoExtractor.DigitisedItemInfo;
 import au.edu.anu.dspace.client.swordv2.digitisation.FileStatus.Status;
 import au.edu.anu.dspace.client.swordv2.digitisation.crosswalk.Crosswalk;
-import au.edu.anu.dspace.client.swordv2.digitisation.crosswalk.CrosswalkResolver;
 import au.edu.anu.dspace.client.swordv2.digitisation.iiirecord.IIIRECORD;
 
 /**
@@ -89,8 +85,9 @@ public class DigitisedThesisParser extends AbstractParser {
 			} else {
 				filesToUpload = dirScanner.getFilteredFiles(Arrays.asList(BNumberExtractor.BNUMBER_REGEX), null);
 			}
-			log.info("Number of files to be uploaded: {}", filesToUpload.size());
+			log.info("Files to upload: {}", filesToUpload.size());
 			if (log.isInfoEnabled()) {
+				
 				for (Path file : filesToUpload) {
 					log.info("\t{}", file.toString());
 				}
@@ -178,11 +175,11 @@ public class DigitisedThesisParser extends AbstractParser {
 			if (!completedTheses.containsKey(bNumber)) {
 				IIIRECORD iiiRecord = catalogueSvc.retrieveCatalogueItem(bNumber);
 				Crosswalk crosswalk = item.getCrosswalk();
-				Map<String, Set<String>> metadata = crosswalk.generateMetadata(iiiRecord);
+				SwordMetadata metadata = crosswalk.generateMetadata(iiiRecord);
 				// use collection name if specified on command line, else use the one from the directory name
 				String targetCollectionName = this.collectionName != null ? this.collectionName
 						: item.getCollectionName();
-				TreeSet<BitstreamInfo> bitstreams = generateBitstreams(item.getFileset());
+				SortedSet<BitstreamInfo> bitstreams = generateBitstreams(item.getFileset());
 				SwordRequestData data = new SwordRequestData(targetCollectionName, metadata, null, bitstreams,
 						inProgress);
 
@@ -199,7 +196,7 @@ public class DigitisedThesisParser extends AbstractParser {
 
 	}
 	
-	private TreeSet<BitstreamInfo> generateBitstreams(TreeSet<Path> fileset) throws FileNotFoundException {
+	private SortedSet<BitstreamInfo> generateBitstreams(Set<Path> fileset) throws FileNotFoundException {
 		TreeSet<BitstreamInfo> bitstreams = new TreeSet<>();
 		for (Path filepath : fileset) {
 			bitstreams.add(new BitstreamInfo(filepath));

@@ -85,7 +85,7 @@ public class CsvFileParserTest {
 		assertThat(row.getCollectionName(), is("Test Archives Collection"));
 		assertThat(row.getMetadata().keySet().size(), is(2));
 		assertThat(row.getMetadata().keySet(), containsInAnyOrder("dc-title", "dc-format-extent"));
-		Set<String> formatExtent = row.getMetadata().get("dc-format-extent");
+		List<String> formatExtent = row.getMetadata().get("dc-format-extent");
 		assertThat(formatExtent, hasSize(2));
 		assertThat(formatExtent, contains("First extent", "Second extent"));
 	}
@@ -112,7 +112,7 @@ public class CsvFileParserTest {
 		logSwordRequests(swordRequests);
 		SwordRequestData row = swordRequests.get(0);
 		assertThat(row.getCollectionName(), is("123456789/98033"));
-		Set<String> values = row.getMetadata().get("dc-description-abstract");
+		List<String> values = row.getMetadata().get("dc-description-abstract");
 		for (String s : values) {
 			System.out.println(s);
 		}

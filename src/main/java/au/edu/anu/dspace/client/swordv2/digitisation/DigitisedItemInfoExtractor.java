@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.slf4j.Logger;
@@ -93,7 +94,7 @@ public class DigitisedItemInfoExtractor {
 		private final String collectionName;
 		private final String bNumber;
 		private final Crosswalk cw;
-		private final TreeSet<Path> fileset;
+		private final SortedSet<Path> fileset;
 		
 		public DigitisedItemInfo(String collectionName, String bNumber, Crosswalk cw, Path firstFile) {
 			super();
@@ -116,7 +117,7 @@ public class DigitisedItemInfoExtractor {
 			return cw;
 		}
 
-		public TreeSet<Path> getFileset() {
+		public SortedSet<Path> getFileset() {
 			return fileset;
 		}
 		

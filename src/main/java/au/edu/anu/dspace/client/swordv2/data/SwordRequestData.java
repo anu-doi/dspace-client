@@ -13,12 +13,12 @@ import java.util.Set;
 public class SwordRequestData {
 	
 	private final String collectionName;
-	private final Map<String, Set<String>> metadata;
+	private final SwordMetadata metadata;
 	private final String editMediaLink;
 	private final Set<BitstreamInfo> bitstreams;
 	private final boolean inProgress;
 	
-	public SwordRequestData(String collectionName, Map<String, Set<String>> metadata, String editMediaLink,
+	public SwordRequestData(String collectionName, SwordMetadata metadata, String editMediaLink,
 			Set<BitstreamInfo> bitstreams, boolean inProgress) {
 		super();
 		this.collectionName = collectionName;
@@ -32,7 +32,7 @@ public class SwordRequestData {
 		return collectionName;
 	}
 
-	public Map<String, Set<String>> getMetadata() {
+	public SwordMetadata getMetadata() {
 		return metadata;
 	}
 

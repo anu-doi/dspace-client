@@ -3,9 +3,7 @@
  */
 package au.edu.anu.dspace.client.swordv2.digitisation.crosswalk;
 
-import java.util.Map;
-import java.util.Set;
-
+import au.edu.anu.dspace.client.swordv2.data.SwordMetadata;
 import au.edu.anu.dspace.client.swordv2.digitisation.iiirecord.IIIRECORD;
 
 /**
@@ -14,5 +12,5 @@ import au.edu.anu.dspace.client.swordv2.digitisation.iiirecord.IIIRECORD;
  */
 public interface Crosswalk {
 
-	public Map<String, Set<String>> generateMetadata(IIIRECORD iiiRecord);
+	public SwordMetadata generateMetadata(IIIRECORD iiiRecord);
 }

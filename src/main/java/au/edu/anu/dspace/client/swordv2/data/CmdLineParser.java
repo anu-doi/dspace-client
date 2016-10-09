@@ -81,14 +81,13 @@ public class CmdLineParser extends AbstractParser {
 		return collectionName;
 	}
 
-	private Map<String, Set<String>> readMetadata() throws ParseException, IOException {
-		Map<String, Set<String>> metadataMap = null;
+	private SwordMetadata readMetadata() throws ParseException, IOException {
+		SwordMetadata swordMetadata = null;
 		if (parsedCmdLine.hasOption('m')) {
-
 			// split argument against option 'm' by ';'.
 			String metadataParam = parsedCmdLine.getOptionValue('m');
 			List<String> metadataEntries = new SplitWithEscapeChar(metadataParam, ";", "\\").getParts();
-			metadataMap = new HashMap<String, Set<String>>(metadataEntries.size());
+			swordMetadata = new SwordMetadata();
 
 			// each metadata entry contains key and value in 'key=value' format.
 			for (String entry : metadataEntries) {
@@ -111,18 +110,13 @@ public class CmdLineParser extends AbstractParser {
 				} else {
 					value = keyValue[1].trim();
 				}
-				if (!metadataMap.containsKey(key)) {
-					Set<String> values = new HashSet<String>(Arrays.asList(value));
-					metadataMap.put(key, values);
-				} else {
-					metadataMap.get(key).add(value);
-				}
+				swordMetadata.add(key, value);
 			}
 
-			log.debug("Parsed metadata from command line: {}", metadataMap);
+			log.debug("Parsed metadata from command line: {}", swordMetadata);
 		}
 
-		return metadataMap;
+		return swordMetadata;
 	}
 
 	private String readEditMediaLink() {

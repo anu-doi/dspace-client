@@ -26,6 +26,7 @@ import org.swordapp.client.SWORDClient;
 
 import au.edu.anu.dspace.client.WorkflowException;
 import au.edu.anu.dspace.client.swordv2.data.BitstreamInfo;
+import au.edu.anu.dspace.client.swordv2.data.SwordMetadata;
 import au.edu.anu.dspace.client.swordv2.data.SwordRequestData;
 import au.edu.anu.dspace.client.swordv2.data.SwordRequestDataProvider;
 
@@ -57,15 +58,15 @@ public class SwordProcessorTest {
 		SwordServerInfo serverInfo = new SwordServerInfo("http://localhost:8080/swordv2/servicedocument",
 				"abc@abc.com", "abc123");
 
-		Map<String, Set<String>> metadata;
+		SwordMetadata metadata;
 		Set<BitstreamInfo> bitstreams;
 
 		// init metadata
-		metadata = new HashMap<>();
-		metadata.put("dc.title", new HashSet<>(Arrays.asList("My Title " + new Date().toString())));
-		metadata.put("description", new HashSet<>(Arrays.asList("Custom Description")));
-		metadata.put("abstract", new HashSet<>(Arrays.asList("My Abstract")));
-		metadata.put("anu.anufield", new HashSet<>(Arrays.asList("Custom ID")));
+		metadata = new SwordMetadata();
+		metadata.add(SwordMetadata.DC_TITLE, "My Title " + new Date().toString());
+		metadata.add(SwordMetadata.DC_DESCRIPTION, "Custom Description");
+		metadata.add(SwordMetadata.DC_DESCRIPTION_ABSTRACT, "My Abstract");
+		metadata.add(SwordMetadata.LOCAL_IDENTIFIER_DOI, "Custom ID");
 
 		// init bitstreams
 		bitstreams = new HashSet<BitstreamInfo>();
@@ -106,15 +107,15 @@ public class SwordProcessorTest {
 		SwordServerInfo serverInfo = new SwordServerInfo("http://localhost:8080/swordv2/servicedocument",
 				"abc@abc.com", "abc123");
 
-		Map<String, Set<String>> metadata;
+		SwordMetadata metadata;
 		Set<BitstreamInfo> bitstreams;
 
 		// init metadata
-		metadata = new HashMap<>();
-		metadata.put("dc.title", new HashSet<>(Arrays.asList("My Title " + new Date().toString())));
-		metadata.put("description", new HashSet<>(Arrays.asList("Custom Description")));
-		metadata.put("abstract", new HashSet<>(Arrays.asList("My Abstract")));
-		metadata.put("anu.anufield", new HashSet<>(Arrays.asList("Custom ID")));
+		metadata = new SwordMetadata();
+		metadata.add(SwordMetadata.DC_TITLE, "My Title " + new Date().toString());
+		metadata.add(SwordMetadata.DC_DESCRIPTION, "Custom Description");
+		metadata.add(SwordMetadata.DC_DESCRIPTION_ABSTRACT, "My Abstract");
+		metadata.add(SwordMetadata.LOCAL_IDENTIFIER_DOI, "Custom ID");
 
 		// init bitstreams
 		bitstreams = new HashSet<BitstreamInfo>();
