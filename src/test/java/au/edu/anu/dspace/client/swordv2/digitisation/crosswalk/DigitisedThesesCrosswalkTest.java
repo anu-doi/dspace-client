@@ -231,11 +231,21 @@ public class DigitisedThesesCrosswalkTest {
 
 		assertThat(metadata, hasKey(SwordMetadata.DC_DESCRIPTION_TABLEOFCONTENTS));
 		assertThat(metadata.get(SwordMetadata.DC_DESCRIPTION_TABLEOFCONTENTS), contains(
-				"Prologue: The White Man's God, 1835-7 -- PART I : LEADERSHIP. Chapter 1. A Circuit in the Islands: the Missionaries; 2. Missionaries and the Fijian Ministry; 3. Chiefly Authority in the Church -- PART II: THE CHURCH AND ITS PEOPLE. 4. Ritual, Rules and Relevance in Fijian Methodism; 5. 'When the Old Gods Rise Again' : Methodist responses to Priestcraft and Syncretism -- PART III: FROM CONFLICT TO CO-OPERATION. 6. Challenges to Methodist Hegemony; 7 Affairs of Church, Government and Land -- PART IV: THE DEVOLUTION OF RESPONSIBILITY. 8. Education - for Church and Community; 9. Silver Coins and Self-Support: The Seeds of Church Independence -- Epilogue: The Fijian Church and Independence -- Appendix I. Fijian Ministers : 1851-1945 -- II. Circuits and Sections: 1835-1945 -- III. Chronology of Events in the History of Fijian Methodism."));
+				"Prologue: The White Man's God, 1835-7 -- PART I : LEADERSHIP. Chapter 1. "
+				+ "A Circuit in the Islands: the Missionaries; 2. Missionaries and the Fijian Ministry; "
+				+ "3. Chiefly Authority in the Church -- PART II: THE CHURCH AND ITS PEOPLE. "
+				+ "4. Ritual, Rules and Relevance in Fijian Methodism; 5. 'When the Old Gods Rise Again' : "
+				+ "Methodist responses to Priestcraft and Syncretism -- PART III: FROM CONFLICT TO "
+				+ "CO-OPERATION. 6. Challenges to Methodist Hegemony; 7 Affairs of Church, Government "
+				+ "and Land -- PART IV: THE DEVOLUTION OF RESPONSIBILITY. 8. Education - for Church and "
+				+ "Community; 9. Silver Coins and Self-Support: The Seeds of Church Independence -- "
+				+ "Epilogue: The Fijian Church and Independence -- Appendix I. Fijian Ministers : 1851-1945 -- "
+				+ "II. Circuits and Sections: 1835-1945 -- III. Chronology of Events in the History of Fijian "
+				+ "Methodism."));
 	}
 	
 	
-	@Ignore
+	@Test
 	public void testLogMultipleRecords() throws Exception {
 		String[] bNumbers = { "b1017441", "b1649651", "b3732753", "b1649967", "b1649626", "b3732711", "b1649608",
 				"b1017377", "b1649605", "b1649602", "b1649967", "b1649838", "b1649625", "b1649615", "b1649631",
@@ -247,6 +257,7 @@ public class DigitisedThesesCrosswalkTest {
 			logParsedMetadata(metadata);
 		}
 	}
+
 	
 	
 	private SwordMetadata generateMetadata(String bNumber, boolean logXml) throws IOException, JAXBException {

@@ -9,12 +9,10 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -149,8 +147,14 @@ public class SwordProcessor {
 	private ServiceDocument retrieveServiceDoc() throws WorkflowException {
 		ServiceDocument sd = null;
 		try {
-			log.info("Retrieving service document from {}...", this.serverInfo.getServiceDocUrl());
-			sd = swordClient.getServiceDocument(this.serverInfo.getServiceDocUrl(), this.serverInfo.createAuth());
+			for (int i = 0; sd == null && i < 10; i++) {
+				if (i > 0) {
+					log.warn("Service document retrieval failed. Retrying in 5 seconds...");
+					Thread.sleep(5000L);
+				}
+				log.info("Retrieving service document from {}...", this.serverInfo.getServiceDocUrl());
+				sd = swordClient.getServiceDocument(this.serverInfo.getServiceDocUrl(), this.serverInfo.createAuth());
+			}
 			log.info("Retrieved service document from {}", this.serverInfo.getServiceDocUrl());
 			log.info("Sword version: {}, Max upload size: {}. Available workspaces: {}", sd.getVersion(),
 					Long.valueOf(sd.getMaxUploadSize()), Integer.valueOf(sd.getWorkspaces().size()));
