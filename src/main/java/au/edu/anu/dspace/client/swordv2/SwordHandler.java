@@ -13,6 +13,7 @@ import au.edu.anu.dspace.client.swordv2.data.SwordRequestDataProvider;
 import au.edu.anu.dspace.client.swordv2.digitisation.DigitisedThesisParser;
 
 public class SwordHandler implements JobHandler {
+	
 	private static final Logger log = LoggerFactory.getLogger(SwordHandler.class);
 	
 	// heavy resource; creating just once
@@ -25,10 +26,10 @@ public class SwordHandler implements JobHandler {
 
 	@Override
 	public int handle(Config config, String[] args) {
-		String serviceDocUrl = config.getProperty(Config.PROPERTY_SERVICEDOCURL);
-		String username = config.getProperty(Config.PROPERTY_USERNAME);
-		String password = config.getProperty(Config.PROPERTY_PASSWORD);
-		String onBehalfOf = config.getProperty(Config.PROPERTY_ONBEHALFOF);
+		String serviceDocUrl = config.getProperty("sword.serviceDocUrl");
+		String username = config.getProperty("sword.username");
+		String password = config.getProperty("sword.password");
+		String onBehalfOf = config.getProperty("sword.onBehalfOf");
 		SwordServerInfo serverInfo = new SwordServerInfo(serviceDocUrl, username, password, onBehalfOf);
 		password = null;
 
