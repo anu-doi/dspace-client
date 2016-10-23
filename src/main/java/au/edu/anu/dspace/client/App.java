@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dspace.client.config.Config;
+import au.edu.anu.dspace.client.rest.RestHandler;
 import au.edu.anu.dspace.client.swordv2.SwordHandler;
 
 public class App {
@@ -27,6 +28,8 @@ public class App {
 			
 			if (args[0].equals("sword")) {
 				handler = new SwordHandler();
+			} else if (args[0].equals("rest")) {
+				handler = new RestHandler();
 			}
 		} else {
 			// no args provided. Display usage instructions.
