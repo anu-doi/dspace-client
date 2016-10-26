@@ -161,6 +161,7 @@ public class SwordProcessor {
 			for (SWORDWorkspace iWorkspace : sd.getWorkspaces()) {
 				log.info("Workspace [{}] contains {} collections.", iWorkspace.getTitle(), Integer.valueOf(iWorkspace.getCollections().size()));
 			}
+			logAllCollections(sd);
 		} catch (Exception e) {
 			log.error("Error retrieving service document from {}", this.serverInfo.getServiceDocUrl());
 			throw new WorkflowException(e);
@@ -366,7 +367,6 @@ public class SwordProcessor {
 			}
 			
 			if (collection == null) {
-				logAllCollections(sd);
 				throw new WorkflowException("Submitter doesn't have access to collection [" + collectionName
 						+ "] or collection doesn't exist.");
 			}

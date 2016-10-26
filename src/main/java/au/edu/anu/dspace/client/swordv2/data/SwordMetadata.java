@@ -17,7 +17,7 @@ import java.util.TreeMap;
 public class SwordMetadata extends TreeMap<String, List<String>> {
 
 	private static final long serialVersionUID = 1L;
-	private static final String[] TITLE_FIELDS = {"dc-title", "title" };
+	private static final String[] TITLE_FIELDS = {"dc-title", "title", "dc.title" };
 
 	public static final String DC_CONTRIBUTOR_ADVISOR = "dc-contributor-advisor";
 	public static final String DC_CONTRIBUTOR_AUTHOR = "dc-contributor-author";
