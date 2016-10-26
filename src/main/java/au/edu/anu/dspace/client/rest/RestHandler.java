@@ -3,7 +3,6 @@
  */
 package au.edu.anu.dspace.client.rest;
 
-import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.dspace.client.JobHandler;
 import au.edu.anu.dspace.client.config.Config;
 import au.edu.anu.dspace.client.rest.model.DSpaceObject;
-import au.edu.anu.dspace.client.rest.model.DSpaceObject.Type;
 import au.edu.anu.dspace.client.rest.model.MetadataEntry;
 
 /**
@@ -65,6 +63,7 @@ public class RestHandler implements JobHandler {
 				authToken = restClient.login(username, password);
 				getMetadata(authToken, args[1]);
 				break;
+				
 			}
 			return 0;
 		} catch (RestClientException e) {

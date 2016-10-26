@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -54,6 +55,7 @@ public class DSpaceRestClient {
 
 		validateResponse(wt.getUri(), r, Status.OK);
 		String entity = r.readEntity(String.class);
+		log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), entity);
 		if (!entity.equals("REST api is running.")) {
 			throw new RestClientException();
 		}
@@ -68,6 +70,7 @@ public class DSpaceRestClient {
 
 		validateResponse(wt.getUri(), r, Status.OK);
 		authToken = r.readEntity(String.class);
+		log.debug("{} {} returned {}", HttpMethod.POST, wt.getUri().toString(), authToken);
 		return authToken;
 	}
 	
@@ -76,6 +79,7 @@ public class DSpaceRestClient {
 		Builder requestBuilder = addAuthTokenHeader(wt.request(), authToken);
 		Response response = requestBuilder.post(null);
 		validateResponse(wt.getUri(), response, Status.OK);
+		log.debug("Logged out using {} {}", HttpMethod.POST, wt.getUri().toString());
 	}
 	
 	public AuthenticatedUser getUserStatus(String authToken) throws RestClientException {
@@ -88,6 +92,7 @@ public class DSpaceRestClient {
 		try {
 			response.bufferEntity();
 			authenticatedUser = response.readEntity(AuthenticatedUser.class);
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), response.readEntity(String.class));
 		} catch (ProcessingException e) {
 			String entityAsStr = response.readEntity(String.class);
 			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
@@ -105,6 +110,7 @@ public class DSpaceRestClient {
 		try {
 			response.bufferEntity();
 			metadata = response.readEntity(new GenericType<List<MetadataEntry>>() {});
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), response.readEntity(String.class));
 		} catch (ProcessingException e) {
 			String entityAsStr = response.readEntity(String.class);
 			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
@@ -131,6 +137,7 @@ public class DSpaceRestClient {
 			} else if (dspaceObj.getType() == DSpaceObject.Type.BITSTREAM) {
 				dspaceObj = response.readEntity(Bitstream.class);
 			}
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), response.readEntity(String.class));
 		} catch (ProcessingException e) {
 			String entityAsStr = response.readEntity(String.class);
 			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
