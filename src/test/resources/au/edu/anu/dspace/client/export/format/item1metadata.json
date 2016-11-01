@@ -1,0 +1,87 @@
+[
+	{
+		"key": "dc.contributor.author",
+		"value": "Kimball, Michael",
+		"language": null
+	},
+	{
+		"key": "dc.date.accessioned",
+		"value": "2016-04-08T05:30:27Z",
+		"language": null
+	},
+	{
+		"key": "dc.date.available",
+		"value": "2016-04-08T05:30:27Z",
+		"language": null
+	},
+	{
+		"key": "dc.identifier.uri",
+		"value": "http://hdl.handle.net/1885/100985",
+		"language": null
+	},
+	{
+		"key": "dc.description.abstract",
+		"value": "This essay is about the interdependence of story and action with respect to\r\ncultural and natural heritage. It is also about the inexorability of change and\r\nits relationship to heritage conservation. In the following paragraphs I share\r\nseveral stories and excerpts, some heroic, others less so (I leave it to the reader\r\nto decide which is which), to make the case that the traditional, Western\r\nperspective on heritage does not hold up well under scrutiny—there is now an\r\nemerging paradigm for heritage conservation, one that both realizes its “empty”\r\nnature and guides us in developing a conservation approach that aligns with\r\nthis recognition.",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.publisher",
+		"value": "ANU Press",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.rights",
+		"value": "Copyright the author",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.source",
+		"value": "Human Ecology Review",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.subject",
+		"value": "cultural heritage",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.subject",
+		"value": "regenerative conservation",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.title",
+		"value": "Our heritage is already broken: meditations on a regenerative conservation for cultural and natural heritage",
+		"language": "en_AU"
+	},
+	{
+		"key": "dc.type",
+		"value": "Journal article",
+		"language": "en_AU"
+	},
+	{
+		"key": "local.type.status",
+		"value": "Accepted Version",
+		"language": "en_AU"
+	},
+	{
+		"key": "local.contributor.affiliation",
+		"value": "Kimball, Michael, Department of Anthropopogy, College of Humanities and Social Sciences, University of Northern Colorado",
+		"language": "en_AU"
+	},
+	{
+		"key": "local.bibliographicCitation.startpage",
+		"value": "1",
+		"language": "en_AU"
+	},
+	{
+		"key": "local.bibliographicCitation.lastpage",
+		"value": "31",
+		"language": "en_AU"
+	},
+	{
+		"key": "dcterms.accessRights",
+		"value": "Open Access",
+		"language": "en_AU"
+	}
+]
