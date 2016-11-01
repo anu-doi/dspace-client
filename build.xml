@@ -9,10 +9,12 @@
 	
 	<target name="install">
 		<echo>Installing to ${install.dir}...</echo>
+		
 		<copy file="${basedir}\target\dspace-client-0.0.1-SNAPSHOT.jar" todir="${install.dir}"></copy>
-		<copy todir="${install.dir}\lib">
+		
+		<sync todir="${install.dir}\lib">
 			<fileset dir="${basedir}\target\lib"></fileset>
-		</copy>
+		</sync>
 	</target>
 
 </project>
