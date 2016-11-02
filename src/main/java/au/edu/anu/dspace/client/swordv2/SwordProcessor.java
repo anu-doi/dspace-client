@@ -195,6 +195,10 @@ public class SwordProcessor {
 		}
 		
 		if (!validationIssues.isEmpty()) {
+			log.error("Validation results:");
+			for (String issue : validationIssues) {
+				log.error("\t{}", issue);
+			}
 			throw new WorkflowException(validationIssues.toString()); 
 		}
 	}
@@ -367,8 +371,7 @@ public class SwordProcessor {
 			}
 			
 			if (collection == null) {
-				throw new WorkflowException("Submitter doesn't have access to collection [" + collectionName
-						+ "] or collection doesn't exist.");
+				throw new WorkflowException(String.format("Collection [%s] not found", collectionName));
 			}
 		}
 		return collection;
@@ -379,7 +382,7 @@ public class SwordProcessor {
 		for (SWORDWorkspace iWorkspace : sd.getWorkspaces()) {
 			for (SWORDCollection iCollection : iWorkspace.getCollections()) {
 				if (iCollection.getTitle() != null && iCollection.getTitle().trim().length() > 0) {
-					log.info("\t{} {}", iCollection.getTitle(), iCollection.getHref().toString());
+					log.info("\t{} <{}>", iCollection.getTitle(), iCollection.getHref().toString());
 				}
 			}
 		}
@@ -426,4 +429,5 @@ public class SwordProcessor {
 		});
 		return fileStream;
 	}
+	
 }
