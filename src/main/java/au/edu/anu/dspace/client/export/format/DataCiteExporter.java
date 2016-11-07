@@ -5,6 +5,10 @@ package au.edu.anu.dspace.client.export.format;
 
 import java.util.List;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
 import au.edu.anu.dspace.client.export.formats.datacite.DateType;
 import au.edu.anu.dspace.client.export.formats.datacite.DescriptionType;
 import au.edu.anu.dspace.client.export.formats.datacite.Resource;
@@ -30,17 +34,34 @@ import au.edu.anu.dspace.client.rest.model.MetadataEntry;
  */
 public class DataCiteExporter extends AbstractExporter<Resource> {
 
+	private static final String DATACITE_SCHEMA_LOCATION = "http://schema.datacite.org/meta/kernel-4/metadata.xsd";
+	private static final String DATACITE_SCHEMA_NS = "http://datacite.org/schema/kernel-4";
+	
+	
+	protected static JAXBContext jaxbContext;
+	
+	static {
+		try {
+			jaxbContext = JAXBContext.newInstance(Resource.class);
+		} catch (JAXBException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	
 	private List<MetadataEntry> metadata;
 	private String crosswalk;
+	private Marshaller marshaller;
 	
 	public DataCiteExporter(List<MetadataEntry> metadata, String crosswalk) throws ExportException {
 		this.metadata = metadata;
 		this.crosswalk = crosswalk;
+		createMarshaller();
 	}
 	
 	@Override
 	public void validate() throws ExportException {
-		super.validate(jaxbContext, "https://schema.datacite.org/meta/kernel-4.0/metadata.xsd");
+		super.validate(jaxbContext, DATACITE_SCHEMA_LOCATION);
 		
 	}
 
@@ -62,6 +83,21 @@ public class DataCiteExporter extends AbstractExporter<Resource> {
 				throw new ExportException(e);
 			}
 			this.rootObject = dataCiteResource;
+		}
+	}
+	
+	@Override
+	protected Marshaller getMarshaller() throws ExportException {
+		return this.marshaller;
+	}
+	
+	private void createMarshaller() throws ExportException {
+		try {
+			marshaller = jaxbContext.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, String.format("%s %s", DATACITE_SCHEMA_NS, DATACITE_SCHEMA_LOCATION));
+		} catch (JAXBException e) {
+			throw new ExportException(e);
 		}
 	}
 	

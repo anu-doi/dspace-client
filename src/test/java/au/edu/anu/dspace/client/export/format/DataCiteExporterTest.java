@@ -15,6 +15,7 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
+import org.hamcrest.core.StringContains;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,9 +40,6 @@ public class DataCiteExporterTest {
 
 	private static final Logger log = LoggerFactory.getLogger(DataCiteExporterTest.class);
 
-	private static JAXBContext dataCiteContext;
-	private static Marshaller dataCiteMarshaller;
-	
 	private DataCiteExporter dataCite;
 
 	/**
@@ -49,8 +47,6 @@ public class DataCiteExporterTest {
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		dataCiteContext = JAXBContext.newInstance(Resource.class);
-		dataCiteMarshaller = dataCiteContext.createMarshaller();
 	}
 
 	/**
@@ -79,13 +75,17 @@ public class DataCiteExporterTest {
 		List<MetadataEntry> metadata = readMetadata("item1metadata.json");
 		DataCiteExporter dataCite = new DataCiteExporter(metadata, "her");
 		Resource resource = dataCite.exportObject();
+		String xmlStr = dataCite.exportToString();
 		
-		StringWriter xml = new StringWriter();
-		dataCiteMarshaller.marshal(resource, xml);
-		log.trace("{}", xml.toString());
+		log.trace("{}", xmlStr);
 		
 		assertThat(resource.getCreators().getCreator().get(0).getCreatorName(), is("Kimball, Michael"));
 		assertThat(resource.getTitles().getTitle().get(0).getValue(), is("Our heritage is already broken: meditations on a regenerative conservation for cultural and natural heritage"));
+		assertThat(resource.getPublisher(), is("ANU Press"));
+		
+		assertThat(xmlStr, StringContains.containsString("xsi:schemaLocation=\"http://datacite.org/schema/kernel-4 https://schema.datacite.org/meta/kernel-4.0/metadata.xsd\""));
+		assertThat(xmlStr, StringContains.containsString("xmlns=\"http://datacite.org/schema/kernel-4\""));
+		assertThat(xmlStr, StringContains.containsString("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""));
 	}
 	
 	@Test

@@ -23,22 +23,15 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import au.edu.anu.dspace.client.export.formats.datacite.Resource;
 import au.edu.anu.dspace.client.rest.model.MetadataEntry;
 
 public abstract class AbstractExporter<T> implements Exporter<T> {
 
-	protected static JAXBContext jaxbContext;
-	
-	static {
-		try {
-			jaxbContext = JAXBContext.newInstance(Resource.class);
-		} catch (JAXBException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	
 	protected T rootObject;
@@ -62,8 +55,7 @@ public abstract class AbstractExporter<T> implements Exporter<T> {
 		}
 		ByteArrayInputStream is;
 		try {
-			Marshaller m = jaxbContext.createMarshaller();
-			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			Marshaller m = getMarshaller();
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			m.marshal(this.rootObject, os);
 			is = new ByteArrayInputStream(os.toByteArray());
@@ -80,8 +72,7 @@ public abstract class AbstractExporter<T> implements Exporter<T> {
 		}
 		StringWriter sw = new StringWriter();
 		try {
-			Marshaller m = jaxbContext.createMarshaller();
-			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			Marshaller m = getMarshaller();
 			m.marshal(this.rootObject, sw);
 		} catch (JAXBException e) {
 			throw new ExportException(e);
@@ -96,7 +87,7 @@ public abstract class AbstractExporter<T> implements Exporter<T> {
 		}
 		Document doc;
 		try {
-			Marshaller m = jaxbContext.createMarshaller();
+			Marshaller m = getMarshaller();
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			m.marshal(this.rootObject, doc);
 		} catch (JAXBException | ParserConfigurationException | FactoryConfigurationError e) {
@@ -136,6 +127,7 @@ public abstract class AbstractExporter<T> implements Exporter<T> {
 		try {
 			Schema schema = sf.newSchema(new URL(schemaUrl));
 			Validator validator = schema.newValidator();
+			validator.setErrorHandler(new CustomErrorHandler());
 			validator.validate(new JAXBSource(context, this.rootObject));
 		} catch (SAXException | IOException | JAXBException e) {
 			throw new ExportException(e);
@@ -144,4 +136,26 @@ public abstract class AbstractExporter<T> implements Exporter<T> {
 	}
 
 	protected abstract void generateRootObject() throws ExportException;
+	
+	protected abstract Marshaller getMarshaller() throws ExportException;
+	
+	
+	private class CustomErrorHandler implements ErrorHandler {
+
+		@Override
+		public void warning(SAXParseException exception) throws SAXException {
+			System.out.println("Warning: " + exception.getMessage());
+		}
+
+		@Override
+		public void error(SAXParseException exception) throws SAXException {
+			System.out.println("Error: " + exception.getMessage());
+		}
+
+		@Override
+		public void fatalError(SAXParseException exception) throws SAXException {
+			System.out.println("Fatal: " + exception.getMessage());
+		}
+		
+	}
 }
