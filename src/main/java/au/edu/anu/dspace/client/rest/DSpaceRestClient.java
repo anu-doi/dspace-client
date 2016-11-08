@@ -1,8 +1,10 @@
 package au.edu.anu.dspace.client.rest;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Objects;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
@@ -51,7 +53,7 @@ public class DSpaceRestClient {
 	public void checkService() throws RestClientException {
 		WebTarget wt = client.target(getBaseUri()).path("test");
 
-		Response r = wt.request(MediaType.APPLICATION_JSON_TYPE).get();
+		Response r = submitGetRequest(wt.request(MediaType.APPLICATION_JSON_TYPE));
 
 		validateResponse(wt.getUri(), r, Status.OK);
 		String entity = r.readEntity(String.class);
@@ -66,7 +68,7 @@ public class DSpaceRestClient {
 		
 		WebTarget wt = client.target(getBaseUri()).path("login");
 		Entity<UserCredentials> authEntity = createAuthEntity(email, password);
-		Response r = wt.request(MediaType.APPLICATION_JSON_TYPE).post(authEntity);
+		Response r = submitPostRequest(wt.request(MediaType.APPLICATION_JSON_TYPE), authEntity);
 
 		validateResponse(wt.getUri(), r, Status.OK);
 		authToken = r.readEntity(String.class);
@@ -77,24 +79,24 @@ public class DSpaceRestClient {
 	public void logout(String authToken) throws RestClientException {
 		WebTarget wt = client.target(getBaseUri()).path("logout");
 		Builder requestBuilder = addAuthTokenHeader(wt.request(), authToken);
-		Response response = requestBuilder.post(null);
-		validateResponse(wt.getUri(), response, Status.OK);
-		log.debug("Logged out using {} {}", HttpMethod.POST, wt.getUri().toString());
+		Response r = submitPostRequest(requestBuilder, null);
+		validateResponse(wt.getUri(), r, Status.OK);
+		log.debug("{} {} returned {}", HttpMethod.POST, wt.getUri().toString(), r.getStatus());
 	}
 	
 	public AuthenticatedUser getUserStatus(String authToken) throws RestClientException {
 		WebTarget wt = client.target(getBaseUri()).path("status");
-		Builder requestBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_JSON_TYPE), authToken);
-		Response response = requestBuilder.get();
-		validateResponse(wt.getUri(), response, Status.OK);
+		Builder reqBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_JSON_TYPE), authToken);
+		Response r = submitGetRequest(reqBuilder);
+		validateResponse(wt.getUri(), r, Status.OK);
 		
 		AuthenticatedUser authenticatedUser;
 		try {
-			response.bufferEntity();
-			authenticatedUser = response.readEntity(AuthenticatedUser.class);
-			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), response.readEntity(String.class));
+			r.bufferEntity();
+			authenticatedUser = r.readEntity(AuthenticatedUser.class);
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), r.readEntity(String.class));
 		} catch (ProcessingException e) {
-			String entityAsStr = response.readEntity(String.class);
+			String entityAsStr = r.readEntity(String.class);
 			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
 		}
 		return authenticatedUser;
@@ -103,16 +105,16 @@ public class DSpaceRestClient {
 	public List<MetadataEntry> getItemMetadata(String authToken, int id) throws RestClientException {
 		WebTarget wt = client.target(getBaseUri()).path("items").path(Integer.toString(id)).path("metadata");
 		Builder reqBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_JSON_TYPE), authToken);
-		Response response = reqBuilder.get();
-		validateResponse(wt.getUri(), response, Status.OK);
+		Response r = submitGetRequest(reqBuilder);
+		validateResponse(wt.getUri(), r, Status.OK);
 		
 		List<MetadataEntry> metadata;
 		try {
-			response.bufferEntity();
-			metadata = response.readEntity(new GenericType<List<MetadataEntry>>() {});
-			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), response.readEntity(String.class));
+			r.bufferEntity();
+			metadata = r.readEntity(new GenericType<List<MetadataEntry>>() {});
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), r.readEntity(String.class));
 		} catch (ProcessingException e) {
-			String entityAsStr = response.readEntity(String.class);
+			String entityAsStr = r.readEntity(String.class);
 			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
 		}
 		return metadata;
@@ -120,34 +122,59 @@ public class DSpaceRestClient {
 	
 	public DSpaceObject getHandle(String authToken, String handle) throws RestClientException {
 		WebTarget wt = client.target(getBaseUri()).path("handle").path(handle);
-		Builder requestBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_JSON_TYPE), authToken);
-		Response response = requestBuilder.get();
-		validateResponse(wt.getUri(), response, Status.OK);
+		Builder reqBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_JSON_TYPE), authToken);
+		Response r = submitGetRequest(reqBuilder);
+		validateResponse(wt.getUri(), r, Status.OK);
 		
 		DSpaceObject dspaceObj;
 		try {
-			response.bufferEntity();
-			dspaceObj = response.readEntity(DSpaceObject.class);
+			r.bufferEntity();
+			dspaceObj = r.readEntity(DSpaceObject.class);
 			if (dspaceObj.getType() == DSpaceObject.Type.COMMUNITY) {
-				dspaceObj = response.readEntity(Community.class);
+				dspaceObj = r.readEntity(Community.class);
 			} else if (dspaceObj.getType() == DSpaceObject.Type.COLLECTION) {
-				dspaceObj = response.readEntity(Collection.class);
+				dspaceObj = r.readEntity(Collection.class);
 			} else if (dspaceObj.getType() == DSpaceObject.Type.ITEM) {
-				dspaceObj = response.readEntity(Item.class);
+				dspaceObj = r.readEntity(Item.class);
 			} else if (dspaceObj.getType() == DSpaceObject.Type.BITSTREAM) {
-				dspaceObj = response.readEntity(Bitstream.class);
+				dspaceObj = r.readEntity(Bitstream.class);
 			}
-			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), response.readEntity(String.class));
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), r.readEntity(String.class));
 		} catch (ProcessingException e) {
-			String entityAsStr = response.readEntity(String.class);
+			String entityAsStr = r.readEntity(String.class);
 			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
 		}
 		return dspaceObj;
 	}
 	
-
 	public URI getBaseUri() throws RestClientException {
 		return baseUri;
+	}
+
+	private Response submitGetRequest(Builder b) throws RestClientException {
+		Response r = null;
+		try {
+			r = b.get();
+		} catch (ProcessingException e) {
+			createRestClientException(e);
+		}
+		return Objects.requireNonNull(r);
+	}
+	
+	private Response submitPostRequest(Builder b, Entity<?> entity) throws RestClientException {
+		Response r = null;
+		try {
+			r = b.post(entity);
+		} catch (ProcessingException e) {
+			createRestClientException(e);
+		}
+		return Objects.requireNonNull(r);
+	}
+	
+	private void createRestClientException(ProcessingException e) throws RestClientException {
+		if (e.getCause() instanceof ConnectException) {
+			throw new RestClientException(e.getMessage(), e.getCause());
+		}
 	}
 
 	private Entity<UserCredentials> createAuthEntity(String email, String password) {
