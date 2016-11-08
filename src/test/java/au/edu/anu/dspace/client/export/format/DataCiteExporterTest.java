@@ -92,7 +92,10 @@ public class DataCiteExporterTest {
 	public void testValidateHer() throws Exception {
 		List<MetadataEntry> metadata = readMetadata("item1metadata.json");
 		DataCiteExporter dataCite = new DataCiteExporter(metadata, "her");
-		dataCite.validate();
+		List<String> validationMessages = dataCite.validate();
+		for (String msg : validationMessages) {
+			log.info("Validation: {}", msg);
+		}
 	}
 
 	private List<MetadataEntry> readMetadata(String filename)

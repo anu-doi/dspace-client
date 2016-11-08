@@ -4,6 +4,7 @@
 package au.edu.anu.dspace.client.export.format;
 
 import java.io.InputStream;
+import java.util.List;
 
 import org.w3c.dom.Document;
 
@@ -21,5 +22,5 @@ public interface Exporter<T> {
 
 	public Document exportToDocument() throws ExportException;
 	
-	public void validate() throws ExportException;
+	public List<String> validate() throws ExportException;
 }

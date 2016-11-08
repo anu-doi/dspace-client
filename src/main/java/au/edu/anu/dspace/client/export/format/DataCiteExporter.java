@@ -3,6 +3,7 @@
  */
 package au.edu.anu.dspace.client.export.format;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -60,9 +61,43 @@ public class DataCiteExporter extends AbstractExporter<Resource> {
 	}
 	
 	@Override
-	public void validate() throws ExportException {
-		super.validate(jaxbContext, DATACITE_SCHEMA_LOCATION);
+	public List<String> validate() throws ExportException {
+		if (this.rootObject == null) {
+			generateRootObject();
+		}
+
+		List<String> validationMessages = new ArrayList<String>();
+
+		// creators
+		if (this.rootObject.getCreators() == null || this.rootObject.getCreators().getCreator() == null
+				|| this.rootObject.getCreators().getCreator().isEmpty()) {
+			validationMessages.add("One or more Creators must be provided");
+		}
+
+		// titles
+		if (this.rootObject.getTitles() == null || this.rootObject.getTitles().getTitle() == null
+				|| this.rootObject.getTitles().getTitle().isEmpty()) {
+			validationMessages.add("One or more Titles must be provided");
+		}
+
+		// publisher
+		if (this.rootObject.getPublisher() == null || this.rootObject.getPublisher().length() == 0) {
+			validationMessages.add("Publisher must be provided");
+		}
+
+		// publication year
+		if (this.rootObject.getPublicationYear() == null || this.rootObject.getPublicationYear().length() == 0) {
+			validationMessages.add("Publication Year must be provided");
+		}
+
+		// resource type
+		if (this.rootObject.getResourceType() == null || this.rootObject.getResourceType().getValue() == null
+				|| this.rootObject.getResourceType().getValue().length() == 0
+				|| this.rootObject.getResourceType().getResourceTypeGeneral() == null) {
+			validationMessages.add("Resource Type must be provided");
+		}
 		
+		return validationMessages;
 	}
 
 	@Override
