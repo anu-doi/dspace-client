@@ -21,8 +21,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.swordapp.client.Deposit;
 import org.swordapp.client.DepositReceipt;
 import org.swordapp.client.EntryPart;
@@ -45,7 +43,6 @@ import au.edu.anu.dspace.client.swordv2.tasks.Md5CalcTask;
 import au.edu.anu.dspace.client.utils.ProgressInputStream;
 
 public class SwordProcessor {
-	private static final Logger log = LoggerFactory.getLogger(SwordProcessor.class);
 
 	private final SWORDClient swordClient;
 	private final SwordServerInfo serverInfo;
@@ -57,7 +54,6 @@ public class SwordProcessor {
 		this.provider = Objects.requireNonNull(provider);
 	}
 
-	
 	/**
 	 * Performs the following in order:
 	 * 
@@ -72,14 +68,16 @@ public class SwordProcessor {
 	public void process() throws WorkflowException {
 		// retrieve service document
 		ServiceDocument sd = retrieveServiceDoc();
-		
+
+		// check if there are any sword requests to be processed
 		int nTotal = provider.getSwordRequests().size();
 		if (nTotal == 0) {
-			log.info("No Sword Requests to be processed.");
+			print("No Sword Requests to be processed. Exiting.");
+			return;
 		}
 
 		validateSwordRequests(sd);
-		
+
 		int nSuccess = 0;
 		int nErrors = 0;
 		for (SwordRequestData iData : provider.getSwordRequests()) {
@@ -93,21 +91,23 @@ public class SwordProcessor {
 					// provided
 					SWORDCollection collection = getCollectionNamed(sd, iData.getCollectionName());
 					Deposit metadataDeposit = createMetadataDeposit(iData.getMetadata());
-					DepositReceipt depositReceipt = depositResource(collection, metadataDeposit, iData.getMetadata().getTitle());
+					DepositReceipt depositReceipt = depositResource(collection, metadataDeposit,
+							iData.getMetadata().getTitle());
 					editLink = depositReceipt.getEditLink().getHref();
 					editMediaLink = depositReceipt.getEditMediaLink().getHref();
 				} else if (iData.getEditMediaLink() != null) {
 					// read resource url from command line parameters.
 					editMediaLink = iData.getEditMediaLink();
 					Deposit metadataDeposit = createMetadataDeposit(iData.getMetadata());
-					DepositReceipt depositReceipt = depositResource(editMediaLink, metadataDeposit, iData.getMetadata().getTitle());
+					DepositReceipt depositReceipt = depositResource(editMediaLink, metadataDeposit,
+							iData.getMetadata().getTitle());
 				}
 
 				// submit files to media link url
 				if (editMediaLink != null) {
 					Map<BitstreamInfo, SwordResponse> bsDepositResponses = depositFiles(editMediaLink,
 							iData.getBitstreams());
-					
+
 					// check for errors when uploading bitstreams
 					Set<BitstreamInfo> erroredBitstreams = new LinkedHashSet<>(bsDepositResponses.size());
 					for (Entry<BitstreamInfo, SwordResponse> resp : bsDepositResponses.entrySet()) {
@@ -130,45 +130,45 @@ public class SwordProcessor {
 				nSuccess++;
 			} catch (WorkflowException e) {
 				nErrors++;
-				log.error(e.getMessage(), e);
+				print(e.getMessage());
+				e.printStackTrace();
 			}
 		}
 
-		String summaryMsg = "{} success. {} errors. {} total.";
+		String summaryMsg = "%d success. %d errors. %d total.";
 		if (nErrors > 0) {
-			log.warn(summaryMsg, nSuccess, nErrors, nTotal);
+			print(summaryMsg, nSuccess, nErrors, nTotal);
 			throw new WorkflowException();
 		} else {
-			log.info(summaryMsg, nSuccess, nErrors, nTotal);
+			print(summaryMsg, nSuccess, nErrors, nTotal);
 		}
 	}
-
 
 	private ServiceDocument retrieveServiceDoc() throws WorkflowException {
 		ServiceDocument sd = null;
 		try {
 			for (int i = 0; sd == null && i < 10; i++) {
 				if (i > 0) {
-					log.warn("Service document retrieval failed. Retrying in 5 seconds...");
+					print("Service document retrieval failed. Retrying in 5 seconds...");
 					Thread.sleep(5000L);
 				}
-				log.info("Retrieving service document from {}...", this.serverInfo.getServiceDocUrl());
+				print("Retrieving service document from %s...", this.serverInfo.getServiceDocUrl());
 				sd = swordClient.getServiceDocument(this.serverInfo.getServiceDocUrl(), this.serverInfo.createAuth());
 			}
-			log.info("Retrieved service document from {}", this.serverInfo.getServiceDocUrl());
-			log.info("Sword version: {}, Max upload size: {}. Available workspaces: {}", sd.getVersion(),
-					Long.valueOf(sd.getMaxUploadSize()), Integer.valueOf(sd.getWorkspaces().size()));
+			print("Retrieved service document from %s", this.serverInfo.getServiceDocUrl());
+			print("Sword version: %s, Max upload size: %d. Available workspaces: %d", sd.getVersion(),
+					sd.getMaxUploadSize(), sd.getWorkspaces().size());
 			for (SWORDWorkspace iWorkspace : sd.getWorkspaces()) {
-				log.info("Workspace [{}] contains {} collections.", iWorkspace.getTitle(), Integer.valueOf(iWorkspace.getCollections().size()));
+				print("Workspace [%s] contains %d collections.", iWorkspace.getTitle(),
+						iWorkspace.getCollections().size());
 			}
 			logAllCollections(sd);
 		} catch (Exception e) {
-			log.error("Error retrieving service document from {}", this.serverInfo.getServiceDocUrl());
+			print("Error retrieving service document from %s", this.serverInfo.getServiceDocUrl());
 			throw new WorkflowException(e);
 		}
 		return sd;
 	}
-
 
 	/**
 	 * Checks that each sword request is for a collection that exists and that
@@ -183,7 +183,8 @@ public class SwordProcessor {
 	 */
 	private void validateSwordRequests(ServiceDocument sd) throws WorkflowException {
 		List<String> validationIssues = new ArrayList<>();
-		// check that collections specified in all requests exist and user has submit permissions 
+		// check that collections specified in all requests exist and user has
+		// submit permissions
 		for (SwordRequestData iData : provider.getSwordRequests()) {
 			try {
 				getCollectionNamed(sd, iData.getCollectionName());
@@ -193,63 +194,60 @@ public class SwordProcessor {
 				}
 			}
 		}
-		
+
 		if (!validationIssues.isEmpty()) {
-			log.error("Validation results:");
+			print("Validation results:");
 			for (String issue : validationIssues) {
-				log.error("\t{}", issue);
+				print("\t%s", issue);
 			}
-			throw new WorkflowException(validationIssues.toString()); 
+			throw new WorkflowException(validationIssues.toString());
 		}
 	}
-
 
 	private Deposit createMetadataDeposit(SwordMetadata metadata) throws WorkflowException {
 		Deposit resourceDeposit = new Deposit();
 		EntryPart ep = new EntryPart();
-	
+
 		for (Entry<String, List<String>> metadataEntry : metadata.entrySet()) {
 			for (String value : metadataEntry.getValue()) {
 				QName qName = createQName(metadataEntry.getKey());
 				ep.addSimpleExtension(qName, value);
 			}
 		}
-	
+
 		resourceDeposit.setEntryPart(ep);
 		resourceDeposit.setInProgress(true);
 		return resourceDeposit;
 	}
-
 
 	private DepositReceipt depositResource(SWORDCollection collection, Deposit resource, String title)
 			throws WorkflowException {
 		DepositTask depTask = new DepositTask(swordClient, this.serverInfo, collection, resource);
 		DepositReceipt depositReceipt = null;
 		try {
-			log.info("Creating item: title=[{}]...", title);
+			print("Creating item: title=[%s]...", title);
 			depositReceipt = depTask.call();
-			log.info("Created at {} with status code {}.", depositReceipt.getLocation(),
-					Integer.valueOf(depositReceipt.getStatusCode()));
-		} catch (Exception e) {
-			throw new WorkflowException(e);
-		}
-		return depositReceipt;
-	}
-	
-	private DepositReceipt depositResource(String editUri, Deposit resource, String title) throws WorkflowException {
-		DepositTask depTask = new DepositTask(swordClient, this.serverInfo, editUri, resource);
-		DepositReceipt depositReceipt = null;
-		try {
-			log.info("Creating item: title=[{}]...", title);
-			depositReceipt = depTask.call();
-			log.info("Created at {} with status code {}.", depositReceipt.getLocation(),
-					Integer.valueOf(depositReceipt.getStatusCode()));
+			print("Created at %s with status code %d.", depositReceipt.getLocation(),
+					depositReceipt.getStatusCode());
 		} catch (Exception e) {
 			throw new WorkflowException(e);
 		}
 		return depositReceipt;
 	}
 
+	private DepositReceipt depositResource(String editUri, Deposit resource, String title) throws WorkflowException {
+		DepositTask depTask = new DepositTask(swordClient, this.serverInfo, editUri, resource);
+		DepositReceipt depositReceipt = null;
+		try {
+			print("Creating item: title=[%s]...", title);
+			depositReceipt = depTask.call();
+			print("Created at %s with status code %d.", depositReceipt.getLocation(),
+					depositReceipt.getStatusCode());
+		} catch (Exception e) {
+			throw new WorkflowException(e);
+		}
+		return depositReceipt;
+	}
 
 	private Map<BitstreamInfo, SwordResponse> depositFiles(String editMediaLink, Collection<BitstreamInfo> bitstreams) {
 		Map<BitstreamInfo, SwordResponse> responses;
@@ -264,14 +262,14 @@ public class SwordProcessor {
 							new Object[] { Long.valueOf(sizeBytes / 1024L) });
 
 					// calculate MD5
-					log.info("Calculating MD5 file={} size={} ...", bitstreamInfo.getFilename(), fmtSize);
+					print("Calculating MD5 file=%s size=%s ...", bitstreamInfo.getFilename(), fmtSize);
 					bitstream = createInputStream(bitstreamInfo.getFile());
 					Md5CalcTask md5Task = new Md5CalcTask(bitstream);
 					String md5 = Hex.encodeHexString(md5Task.call()).toLowerCase();
 					IOUtils.closeQuietly(bitstream);
 
-					log.info("Uploading file={} size={}:MD5={} [{}/{}]...", new Object[] { bitstreamInfo.getFilename(),
-							fmtSize, md5, Integer.valueOf(count), Integer.valueOf(bitstreams.size()) });
+					print("Uploading file=%s size=%s:MD5=%s [%d/%d]...", new Object[] { bitstreamInfo.getFilename(),
+							fmtSize, md5, count, bitstreams.size() });
 
 					// create bitstream deposit object
 					Deposit bsDeposit = new Deposit();
@@ -290,7 +288,7 @@ public class SwordProcessor {
 					bsDeposit.setFile(bitstream);
 
 					SwordResponse bsDepositReceipt = null;
-					for (int attempt = 0, maxTries = 3; ; attempt++) {
+					for (int attempt = 0, maxTries = 3;; attempt++) {
 						try {
 							AddToMediaResourceTask atmrTask = new AddToMediaResourceTask(swordClient, this.serverInfo,
 									editMediaLink, bsDeposit);
@@ -298,7 +296,7 @@ public class SwordProcessor {
 							break;
 						} catch (Exception e) {
 							if (attempt < maxTries) {
-								log.warn("Attempt to upload {} failed. Retrying...", bitstreamInfo.getFilename());
+								print("Attempt to upload %s failed. Retrying...", bitstreamInfo.getFilename());
 								Thread.sleep(10000L);
 							} else {
 								throw e;
@@ -306,11 +304,12 @@ public class SwordProcessor {
 						}
 					}
 					responses.put(bitstreamInfo, bsDepositReceipt);
-					log.info("Uploaded {}. Status:{}, MD5:{}", bitstreamInfo.getFilename(),
-							Integer.valueOf(bsDepositReceipt.getStatusCode()), bsDepositReceipt.getContentMD5());
+					print("Uploaded %s. Status:%d, MD5:%s", bitstreamInfo.getFilename(),
+							bsDepositReceipt.getStatusCode(), bsDepositReceipt.getContentMD5());
 				} catch (Exception e) {
 					responses.put(bitstreamInfo, null);
-					log.error("Unable to upload " + bitstreamInfo.getFilepath() + ". " + e.getMessage(), e);
+					print("Unable to upload %s: %s", bitstreamInfo.getFilepath(), e.getMessage());
+					e.printStackTrace();
 				} finally {
 					IOUtils.closeQuietly(bitstream);
 					count++;
@@ -328,7 +327,7 @@ public class SwordProcessor {
 			ChangeInProgressTask cipTask = new ChangeInProgressTask(swordClient, serverInfo, editLink);
 			response = cipTask.call();
 		} catch (Exception e) {
-			log.error("Unable to change In Progress flag at {}", editLink);
+			print("Unable to change In Progress flag at %s", editLink);
 			throw new WorkflowException(e);
 		}
 		return response;
@@ -351,7 +350,8 @@ public class SwordProcessor {
 				// look for collection with specified handle
 				for (SWORDWorkspace iWorkspace : sd.getWorkspaces()) {
 					for (SWORDCollection iColl : iWorkspace.getCollections()) {
-						if (iColl != null && iColl.getTitle() != null && iColl.getHref().toASCIIString().endsWith("/" + collectionName)) {
+						if (iColl != null && iColl.getTitle() != null
+								&& iColl.getHref().toASCIIString().endsWith("/" + collectionName)) {
 							collection = iColl;
 							break;
 						}
@@ -369,7 +369,7 @@ public class SwordProcessor {
 					}
 				}
 			}
-			
+
 			if (collection == null) {
 				throw new WorkflowException(String.format("Collection [%s] not found", collectionName));
 			}
@@ -377,17 +377,15 @@ public class SwordProcessor {
 		return collection;
 	}
 
-
 	private void logAllCollections(ServiceDocument sd) {
 		for (SWORDWorkspace iWorkspace : sd.getWorkspaces()) {
 			for (SWORDCollection iCollection : iWorkspace.getCollections()) {
 				if (iCollection.getTitle() != null && iCollection.getTitle().trim().length() > 0) {
-					log.info("\t{} <{}>", iCollection.getTitle(), iCollection.getHref().toString());
+					print("\t%s <%s>", iCollection.getTitle(), iCollection.getHref().toString());
 				}
 			}
 		}
 	}
-
 
 	private QName createQName(String fqFieldname) {
 		QName term = null;
@@ -410,6 +408,11 @@ public class SwordProcessor {
 		return term;
 	}
 
+	private void print(String format, Object... args) {
+		System.out.format(format, args);
+		System.out.println();
+	}
+
 	private InputStream createInputStream(Path file) throws IOException {
 		long totalBytes = Files.size(file);
 		ProgressInputStream fileStream = new ProgressInputStream(Files.newInputStream(file), totalBytes);
@@ -429,5 +432,5 @@ public class SwordProcessor {
 		});
 		return fileStream;
 	}
-	
+
 }

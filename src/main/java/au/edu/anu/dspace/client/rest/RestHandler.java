@@ -8,9 +8,6 @@ import java.util.List;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.anu.dspace.client.JobHandler;
 import au.edu.anu.dspace.client.config.Config;
 import au.edu.anu.dspace.client.rest.model.DSpaceObject;
@@ -22,8 +19,6 @@ import au.edu.anu.dspace.client.rest.model.MetadataEntry;
  */
 public class RestHandler implements JobHandler {
 	
-	private static final Logger log = LoggerFactory.getLogger(RestHandler.class);
-
 	private DSpaceRestClient restClient;
 
 	public RestHandler() {
@@ -67,14 +62,15 @@ public class RestHandler implements JobHandler {
 			}
 			return 0;
 		} catch (RestClientException e) {
-			log.warn(e.getMessage(), e);
+			print(e.getMessage());
+			e.printStackTrace();
 			return 1;
 		} finally {
 			if (authToken != null) {
 				try {
 					restClient.logout(authToken);
 				} catch (RestClientException e) {
-					log.warn("Unable to logoff");
+					print("Unable to logoff");
 				}
 			}
 		}

@@ -24,8 +24,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dspace.client.JobHandler;
 import au.edu.anu.dspace.client.config.Config;
@@ -42,12 +40,8 @@ import au.edu.anu.dspace.client.rest.model.MetadataEntry;
  *
  */
 public class ExportHandler implements JobHandler {
-	
-	private static final Logger log = LoggerFactory.getLogger(ExportHandler.class);
 
 	private DSpaceRestClient restClient;
-	
-	
 
 	@Override
 	public int handle(Config config, String[] args) {
@@ -88,6 +82,7 @@ public class ExportHandler implements JobHandler {
 			Exporter<?> exporter = null;
 
 			authToken = restClient.login(username, password);
+			print("User %s logged in with token: %s", username, authToken);
 			int id = resolveHandleOrId(authToken, handleOrId);
 			List<MetadataEntry> metadata = restClient.getItemMetadata(authToken, id);
 
@@ -95,17 +90,32 @@ public class ExportHandler implements JobHandler {
 			case "datacite":
 				exporter = new DataCiteExporter(metadata, crosswalk);
 				if (cmd.hasOption("validate")) {
-					exporter.validate();
+					List<String> validationMessages = exporter.validate();
+					if (validationMessages.isEmpty()) {
+						print("Validation successful");
+					} else {
+						for (String msg : validationMessages) {
+							print("Validation Error: %s", msg);
+						}
+					}
 				}
 				break;
-				
+
 			default:
 				print("Unknown Format Exporter: %s", format);
 				break;
 			}
 
 			if (exporter != null) {
+				if (!cmd.hasOption("output")) {
+					print("********");
+				}
 				streamToOutput(exporter.exportToString(), cmd.getOptionValue("output"));
+				if (!cmd.hasOption("output")) {
+					print("********");
+				} else {
+					print("Exported to %s", cmd.getOptionValue("output"));
+				}
 			}
 		} catch (RestClientException | ExportException | IOException e) {
 			print(e.getMessage());
@@ -114,8 +124,10 @@ public class ExportHandler implements JobHandler {
 			if (authToken != null) {
 				try {
 					restClient.logout(authToken);
+					print("User %s logged out. Token %s invalidated", username, authToken);
 				} catch (RestClientException e) {
-					log.warn("Unable to logoff from REST service at {}", restBaseUri);
+					print("Unable to logoff user %s from REST service at %s. Error: %s", username, restBaseUri,
+							e.getMessage());
 				}
 			}
 		}
@@ -123,50 +135,48 @@ public class ExportHandler implements JobHandler {
 		return 0;
 	}
 
-
 	private void streamToOutput(String docAsStr, String osName) throws IOException {
 		BufferedWriter os;
 		boolean closeStreamWhenFinished;
 		if (osName != null) {
 			// normal file
 			Path osPath = Paths.get(osName);
-			os = Files.newBufferedWriter(osPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+			os = Files.newBufferedWriter(osPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE,
+					StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 			closeStreamWhenFinished = true;
 		} else {
 			// stdout
 			os = new BufferedWriter(new OutputStreamWriter(System.out));
 			closeStreamWhenFinished = false;
 		}
-		
+
 		try {
 			os.write(docAsStr);
 		} finally {
 			if (closeStreamWhenFinished) {
 				IOUtils.closeQuietly(os);
 			} else {
-				try { 
+				try {
 					os.flush();
 				} catch (IOException e) {
 					// no op.
 				}
 			}
 		}
-		
-		
-	}
 
+	}
 
 	private int resolveHandleOrId(String authToken, String handleOrId) throws RestClientException {
 		int id;
 		if (handleOrId.contains("/")) {
 			DSpaceObject dSpaceObject = restClient.getHandle(authToken, handleOrId);
 			id = dSpaceObject.getId();
+			print ("Resolved handle=%s to id=%d", handleOrId, id);
 		} else {
 			id = Integer.parseInt(handleOrId);
 		}
 		return id;
 	}
-
 
 	private void displayHelp(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
@@ -194,12 +204,9 @@ public class ExportHandler implements JobHandler {
 		return options;
 	}
 
-
 	private void print(String format, Object... args) {
 		System.out.format(format, args);
 		System.out.println();
 	}
-
-	
 
 }
