@@ -41,9 +41,12 @@ import au.edu.anu.dspace.client.swordv2.tasks.ChangeInProgressTask;
 import au.edu.anu.dspace.client.swordv2.tasks.DepositTask;
 import au.edu.anu.dspace.client.swordv2.tasks.Md5CalcTask;
 import au.edu.anu.dspace.client.utils.ProgressInputStream;
+import au.edu.anu.dspace.client.utils.StdOutHandler;
 
 public class SwordProcessor {
 
+	private StdOutHandler stdOutHandler = new StdOutHandler();
+	
 	private final SWORDClient swordClient;
 	private final SwordServerInfo serverInfo;
 	private final SwordRequestDataProvider provider;
@@ -75,6 +78,8 @@ public class SwordProcessor {
 			print("No Sword Requests to be processed. Exiting.");
 			return;
 		}
+		
+		displaySwordRequests();
 
 		validateSwordRequests(sd);
 
@@ -136,11 +141,11 @@ public class SwordProcessor {
 		}
 
 		String summaryMsg = "%d success. %d errors. %d total.";
+		stdOutHandler.println("**************");
+		stdOutHandler.println(summaryMsg, nSuccess, nErrors, nTotal);
+		stdOutHandler.println("**************");
 		if (nErrors > 0) {
-			print(summaryMsg, nSuccess, nErrors, nTotal);
 			throw new WorkflowException();
-		} else {
-			print(summaryMsg, nSuccess, nErrors, nTotal);
 		}
 	}
 
@@ -168,6 +173,45 @@ public class SwordProcessor {
 			throw new WorkflowException(e);
 		}
 		return sd;
+	}
+
+	private void displaySwordRequests() {
+		int i = 1;
+		for (SwordRequestData iData : provider.getSwordRequests()) {
+			print("Item %d/%d: %s", i, provider.getSwordRequests().size(), iData.getMetadata().getTitle());
+			print("\tTarget Collection: %s", iData.getCollectionName());
+			for (Entry<String, List<String>> entry : iData.getMetadata().entrySet()) {
+				if (entry.getValue().size() == 1) {
+					print("\t%s: %s", entry.getKey(), truncateLongValue(entry.getValue().get(0), 80));
+				} else if (entry.getValue().size() > 1) {
+					print("\t%s:", entry.getKey());
+					for (String value : entry.getValue()) {
+						print("\t\t%s", truncateLongValue(value, 80));
+					}
+				}
+			}
+			
+			int bi = 1;
+			print("\tBITSTREAMS: %d", iData.getBitstreams().size());
+			for (BitstreamInfo bitstreamInfo : iData.getBitstreams()) {
+				print("\t\t%d: %s, %d bytes", bi, bitstreamInfo.getFilepath(), bitstreamInfo.getSize());
+				bi++;
+			}
+			
+			i++;
+		}
+	}
+	
+	private String truncateLongValue(String val, int nChars) {
+		final String ellipsis = "...";
+		if (val.length() <= nChars) {
+			return val;
+		} else {
+			StringBuilder truncated = new StringBuilder(val.substring(0, nChars - ellipsis.length()));
+			truncated.append(ellipsis);
+			return truncated.toString();
+		}
+		
 	}
 
 	/**
@@ -306,6 +350,7 @@ public class SwordProcessor {
 					responses.put(bitstreamInfo, bsDepositReceipt);
 					print("Uploaded %s. Status:%d, MD5:%s", bitstreamInfo.getFilename(),
 							bsDepositReceipt.getStatusCode(), bsDepositReceipt.getContentMD5());
+					
 				} catch (Exception e) {
 					responses.put(bitstreamInfo, null);
 					print("Unable to upload %s: %s", bitstreamInfo.getFilepath(), e.getMessage());
@@ -417,14 +462,18 @@ public class SwordProcessor {
 		long totalBytes = Files.size(file);
 		ProgressInputStream fileStream = new ProgressInputStream(Files.newInputStream(file), totalBytes);
 		fileStream.addPropertyChangeListener(new PropertyChangeListener() {
+			
 			public void propertyChange(PropertyChangeEvent evt) {
 				if (evt.getPropertyName().equals("percentComplete")) {
 					int oldValue = ((Integer) evt.getOldValue()).intValue();
 					int newValue = ((Integer) evt.getNewValue()).intValue();
 					if (newValue > oldValue) {
-						System.out.print(newValue + "%\r");
+						stdOutHandler.eraseLastPrinted();
+						stdOutHandler.print("%d%%", newValue);
+						// System.out.print(newValue + "%\r");
 						if (newValue == 100) {
-							System.out.println();
+							// System.out.println();
+							stdOutHandler.println();
 						}
 					}
 				}
