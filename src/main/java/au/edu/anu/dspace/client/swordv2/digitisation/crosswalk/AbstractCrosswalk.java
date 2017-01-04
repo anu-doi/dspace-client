@@ -333,7 +333,7 @@ public abstract class AbstractCrosswalk implements Crosswalk {
 		return values;
 	}
 	
-	protected List<String> extractSummaries(IIIRECORD iiiRecord) {
+	protected List<String> extractAbstracts(IIIRECORD iiiRecord) {
 		List<String> values = new ArrayList<>();
 		for (VARFLD marcTagVarField : getVarFields(iiiRecord, "520")) {
 			if (getIndicator1(marcTagVarField).equals("3")) {
@@ -357,7 +357,31 @@ public abstract class AbstractCrosswalk implements Crosswalk {
 			values.add(concatenatedSummary.toString());
 		}
 		return values;
-
+	}
+	
+	protected List<String> extractSummaries(IIIRECORD iiiRecord) {
+		List<String> values = new ArrayList<>();
+		for (VARFLD marcTagVarField : getVarFields(iiiRecord, "520")) {
+			String value = concatenateSubfields(marcTagVarField.getMarcSubfld(), SUBFIELDS_A_TO_Z, " ");
+			if (value != null && value.length() > 0) {
+				values.add(stripLeadingTrailingChars(value, " ", " "));
+			}
+		}
+		
+		if (values.size() > 0) {
+			// concatenate all summaries into one value separated by a line separator
+			StringBuilder concatenatedSummary = new StringBuilder();
+			for (int i = 0; i < values.size(); i++) {
+				concatenatedSummary.append(values.get(i));
+				if (i < values.size() - 1) {
+					concatenatedSummary.append(PARAGRAPH_BREAK);
+				}
+			}
+			values = new ArrayList<>(1);
+			values.add(concatenatedSummary.toString());
+		}
+		return values;
+		
 	}
 	
 	protected List<String> extractSupervisors(IIIRECORD iiiRecord) {

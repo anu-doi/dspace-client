@@ -15,10 +15,13 @@ import au.edu.anu.dspace.client.swordv2.digitisation.iiirecord.IIIRECORD;
  * @author Rahul Khanna
  *
  */
-public class DigitisedThesesCrosswalk extends AbstractCrosswalk {
-
-	private static final Logger log = LoggerFactory.getLogger(DigitisedThesesCrosswalk.class);
+public class AnuPressCrosswalk extends AbstractCrosswalk {
 	
+	private static final Logger log = LoggerFactory.getLogger(AnuPressCrosswalk.class);
+
+	/* (non-Javadoc)
+	 * @see au.edu.anu.dspace.client.swordv2.digitisation.crosswalk.Crosswalk#generateMetadata(au.edu.anu.dspace.client.swordv2.digitisation.iiirecord.IIIRECORD)
+	 */
 	@Override
 	public SwordMetadata generateMetadata(IIIRECORD iiiRecord) {
 		SwordMetadata swordMetadata = new SwordMetadata();
@@ -26,31 +29,43 @@ public class DigitisedThesesCrosswalk extends AbstractCrosswalk {
 		// bNumber
 		String bNumber = extractBNumber(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_IDENTIFIER_OTHER, bNumber);
-		
+
 		// titles
 		List<String> titles = extractTitles(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_TITLE, titles);
-		
+
 		// alternative titles
 		List<String> altTitles = extractAlternativeTitles(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_TITLE_ALTERNATIVE, altTitles);
-		
+
 		// authors
 		List<String> authors = extractAuthors(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_CONTRIBUTOR_AUTHOR, authors);
-		
-		// dates published
-		List<String> datesPublished = extractDatesPublished(iiiRecord);
-		swordMetadata.add(SwordMetadata.DC_DATE_ISSUED, datesPublished);
+				
+		// accrual methods
+		List<String> accrualMethods = extractAccrualMethods(iiiRecord);
+		swordMetadata.add(SwordMetadata.DCTERMS_ACCRUALMETHOD, accrualMethods);
 		
 		// dates copyrighted
 		List<String> datesCopyrighted = extractDatesCopyrighted(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_DATE_COPYRIGHT, datesCopyrighted);
-		
+
 		// publishers
 		List<String> publishers = extractPublishers(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_PUBLISHER, publishers);
-		
+
+		// dates published
+		List<String> datesPublished = extractDatesPublished(iiiRecord);
+		swordMetadata.add(SwordMetadata.DC_DATE_ISSUED, datesPublished);
+
+		// summaries
+		List<String> summaries = extractSummaries(iiiRecord);
+		swordMetadata.add(SwordMetadata.DC_DESCRIPTION, summaries);
+
+		// table of contents
+		List<String> tableOfContents = extractTableOfContents(iiiRecord);
+		swordMetadata.add(SwordMetadata.DC_DESCRIPTION_TABLEOFCONTENTS, tableOfContents);
+
 		// format extents
 		List<String> formatExtents = extractFormatExtents(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_FORMAT_EXTENT, formatExtents);
@@ -58,28 +73,15 @@ public class DigitisedThesesCrosswalk extends AbstractCrosswalk {
 		// format mediums
 		List<String> formatMediums = extractFormatMediums(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_FORMAT_MEDIUM, formatMediums);
-		
 
-		// supervisors
-		List<String> supervisors = extractSupervisors(iiiRecord);
-		swordMetadata.add(SwordMetadata.LOCAL_CONTRIBUTOR_SUPERVISOR, supervisors);
-		
-		// colleges
-		List<String> colleges = extractColleges(iiiRecord);
-		swordMetadata.add(SwordMetadata.LOCAL_CONTRIBUTOR_AFFILIATION, colleges);
-		
-		// dissertation notes
-		List<String> dissertationNotes = extractDissertationNotes(iiiRecord);
-		swordMetadata.add(SwordMetadata.DC_TYPE, dissertationNotes);
-		
-		// abstracts
-		List<String> abstracts = extractAbstracts(iiiRecord);
-		swordMetadata.add(SwordMetadata.DC_DESCRIPTION_ABSTRACT, abstracts);
+		// languages
+		List<String> languages = extractLanguages(iiiRecord);
+		swordMetadata.add(SwordMetadata.DC_LANGUAGE, languages);
 
-		// accrual methods
-		List<String> accrualMethods = extractAccrualMethods(iiiRecord);
-		swordMetadata.add(SwordMetadata.DCTERMS_ACCRUALMETHOD, accrualMethods);
-		
+		// access rights
+		List<String> accessRights = extractAccessRights(iiiRecord);
+		swordMetadata.add(SwordMetadata.DCTERMS_ACCESSRIGHTS, accessRights);
+
 		// subjects DDC
 		List<String> subjectsDdc = extractSubjectsDdc(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_SUBJECT_DDC, subjectsDdc);
@@ -95,22 +97,9 @@ public class DigitisedThesesCrosswalk extends AbstractCrosswalk {
 		// subjects LCSH
 		List<String> subjectsLcsh = extractSubjectsLcsh(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_SUBJECT_LCSH, subjectsLcsh);
-		
-		// access rights
-		List<String> accessRights = extractAccessRights(iiiRecord);
-		swordMetadata.add(SwordMetadata.DCTERMS_ACCESSRIGHTS, accessRights);
-		
-		// languages
-		List<String> languages = extractLanguages(iiiRecord);
-		swordMetadata.add(SwordMetadata.DC_LANGUAGE, languages);
-		
-		// table of contents
-		List<String> tableOfContents = extractTableOfContents(iiiRecord);
-		swordMetadata.add(SwordMetadata.DC_DESCRIPTION_TABLEOFCONTENTS, tableOfContents);
+
 		
 		return swordMetadata;
 	}
-	
-	
-		
+
 }

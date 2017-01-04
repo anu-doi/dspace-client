@@ -7,72 +7,33 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dspace.client.swordv2.data.SwordMetadata;
-import au.edu.anu.dspace.client.swordv2.digitisation.iiirecord.IIIRECORD;
 
 /**
  * @author Rahul Khanna
  *
  */
-public class DigitisedThesesCrosswalkTest {
+public class DigitisedThesesCrosswalkTest extends AbstractCrosswalkTest {
 
 	private static final Logger log = LoggerFactory.getLogger(DigitisedThesesCrosswalkTest.class);
 	
-	private static JAXBContext jaxbContext;
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		jaxbContext = JAXBContext.newInstance(IIIRECORD.class);
-	}
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-	
-	private Marshaller m;
-	
-	
-	private Unmarshaller um;
-
-	private DigitisedThesesCrosswalk cw;
-
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		m = jaxbContext.createMarshaller();
-		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		m.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
-		um = jaxbContext.createUnmarshaller();
-		
+		super.setUp();
 		cw = new DigitisedThesesCrosswalk();
 	}
 
@@ -165,7 +126,6 @@ public class DigitisedThesesCrosswalkTest {
 		SwordMetadata metadata = generateMetadata("b1288031", true);
 		logParsedMetadata(metadata);
 		
-		assertThat(metadata, hasKey(SwordMetadata.DC_LANGUAGE));
 		assertThat(metadata.get(SwordMetadata.DC_LANGUAGE), contains("Text in Chinese with English title page. Summary in English in back pocket"));
 	}
 
@@ -256,36 +216,6 @@ public class DigitisedThesesCrosswalkTest {
 			SwordMetadata metadata = generateMetadata(bNumber, false);
 			logParsedMetadata(metadata);
 		}
-	}
-
-	
-	
-	private SwordMetadata generateMetadata(String bNumber, boolean logXml) throws IOException, JAXBException {
-		IIIRECORD iiiRec = getIIIRecord(bNumber);
-		if (logXml) {
-			logIiiRecordXml(iiiRec);
-		}
-		return cw.generateMetadata(iiiRec);
-	}
-
-	private IIIRECORD getIIIRecord(String bNumber) throws IOException, JAXBException {
-		URL xmlUrl = new URL("http://library.anu.edu.au/xrecord=" + bNumber);
-		IIIRECORD iiiRec = null;
-		iiiRec = (IIIRECORD) um.unmarshal(xmlUrl);
-		return iiiRec;
-	}
-	
-	private void logIiiRecordXml(IIIRECORD iiiRec) throws JAXBException {
-		StringWriter xmlStrWriter = new StringWriter();
-		m.marshal(iiiRec, xmlStrWriter);
-		log.trace("XML Record for {}:{}{}", iiiRec.getRecordInfo().getRECORDKEY().trim(), System.lineSeparator(), xmlStrWriter);
-	}
-
-	private void logParsedMetadata(SwordMetadata metadata) {
-		for (Entry<String, List<String>> entry : metadata.entrySet()) {
-			log.trace("{} ({}): {}", entry.getKey(), entry.getValue().size(), entry.getValue());
-		}
-		log.trace("{} fields", metadata.size());
 	}
 
 }
