@@ -3,6 +3,9 @@
  */
 package au.edu.anu.dspace.client.rest;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -59,9 +62,14 @@ public class RestHandler implements JobHandler {
 				getMetadata(authToken, args[1]);
 				break;
 				
+			case "addbitstream":
+				authToken = restClient.login(username, password);
+				Path fileToUpload = Paths.get(args[1]);
+				addBitstream(authToken, args[1], fileToUpload.getFileName().toString(), null, fileToUpload);
+				break;
 			}
 			return 0;
-		} catch (RestClientException e) {
+		} catch (RestClientException | IOException e) {
 			print(e.getMessage());
 			e.printStackTrace();
 			return 1;
@@ -99,6 +107,19 @@ public class RestHandler implements JobHandler {
 		for (MetadataEntry metadataEntry : itemMetadata) {
 			print("%s: %s", metadataEntry.getKey(), metadataEntry.getValue());
 		}
+	}
+
+	private void addBitstream(String authToken, String handleOrId, String filename, String description, Path filepath)
+			throws RestClientException, IOException {
+		int id;
+		if (handleOrId.contains("/")) {
+			String handle = handleOrId;
+			DSpaceObject dspaceObject = restClient.getHandle(authToken, handle);
+			id = dspaceObject.getId();
+		} else {
+			id = Integer.parseInt(handleOrId);
+		}
+		restClient.addBitstream(authToken, id, filename, description, filepath);
 	}
 
 	private void print(String format, Object... args) {

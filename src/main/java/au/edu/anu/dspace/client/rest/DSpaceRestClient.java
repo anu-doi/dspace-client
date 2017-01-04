@@ -1,8 +1,13 @@
 package au.edu.anu.dspace.client.rest;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Objects;
 
@@ -120,6 +125,25 @@ public class DSpaceRestClient {
 		return metadata;
 	}
 	
+	public void addBitstream(String authToken, int id, String name, String description, Path filepath) throws RestClientException, IOException {
+		WebTarget wt = client.target(getBaseUri()).path("items").path(Integer.toString(id)).path("bitstreams");
+		wt = wt.queryParam("name", name);
+		wt = wt.queryParam("description", description);
+		Builder reqBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_OCTET_STREAM_TYPE), authToken);
+		Entity<InputStream> bitstreamEntity;
+		bitstreamEntity = Entity.entity(Files.newInputStream(filepath, StandardOpenOption.READ), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+		Response r = submitPostRequest(reqBuilder, bitstreamEntity);
+
+		try {
+			r.bufferEntity();
+			r.readEntity(String.class);
+			log.debug("{} {} returned {}", HttpMethod.GET, wt.getUri().toString(), r.readEntity(String.class));
+		} catch (ProcessingException e) {
+			String entityAsStr = r.readEntity(String.class);
+			throw new RestClientException(String.format("Unable to parse: %s", entityAsStr), e);
+		}
+	}
+
 	public DSpaceObject getHandle(String authToken, String handle) throws RestClientException {
 		WebTarget wt = client.target(getBaseUri()).path("handle").path(handle);
 		Builder reqBuilder = addAuthTokenHeader(wt.request(MediaType.APPLICATION_JSON_TYPE), authToken);
