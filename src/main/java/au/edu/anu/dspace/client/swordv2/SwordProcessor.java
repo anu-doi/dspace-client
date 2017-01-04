@@ -103,9 +103,11 @@ public class SwordProcessor {
 				} else if (iData.getEditMediaLink() != null) {
 					// read resource url from command line parameters.
 					editMediaLink = iData.getEditMediaLink();
-					Deposit metadataDeposit = createMetadataDeposit(iData.getMetadata());
-					DepositReceipt depositReceipt = depositResource(editMediaLink, metadataDeposit,
-							iData.getMetadata().getTitle());
+					if (iData.getMetadata() != null) {
+						Deposit metadataDeposit = createMetadataDeposit(iData.getMetadata());
+						DepositReceipt depositReceipt = depositResource(editMediaLink, metadataDeposit,
+								iData.getMetadata().getTitle());
+					}
 				}
 
 				// submit files to media link url
@@ -178,15 +180,17 @@ public class SwordProcessor {
 	private void displaySwordRequests() {
 		int i = 1;
 		for (SwordRequestData iData : provider.getSwordRequests()) {
-			print("Item %d/%d: %s", i, provider.getSwordRequests().size(), iData.getMetadata().getTitle());
+			print("Item %d/%d: %s", i, provider.getSwordRequests().size(), (iData.getMetadata() != null && iData.getMetadata().getTitle() != null) ? iData.getMetadata().getTitle() : "[No Title]");
 			print("\tTarget Collection: %s", iData.getCollectionName());
-			for (Entry<String, List<String>> entry : iData.getMetadata().entrySet()) {
-				if (entry.getValue().size() == 1) {
-					print("\t%s: %s", entry.getKey(), truncateLongValue(entry.getValue().get(0), 80));
-				} else if (entry.getValue().size() > 1) {
-					print("\t%s:", entry.getKey());
-					for (String value : entry.getValue()) {
-						print("\t\t%s", truncateLongValue(value, 80));
+			if (iData.getMetadata() != null) {
+				for (Entry<String, List<String>> entry : iData.getMetadata().entrySet()) {
+					if (entry.getValue().size() == 1) {
+						print("\t%s: %s", entry.getKey(), truncateLongValue(entry.getValue().get(0), 80));
+					} else if (entry.getValue().size() > 1) {
+						print("\t%s:", entry.getKey());
+						for (String value : entry.getValue()) {
+							print("\t\t%s", truncateLongValue(value, 80));
+						}
 					}
 				}
 			}
@@ -340,7 +344,7 @@ public class SwordProcessor {
 							break;
 						} catch (Exception e) {
 							if (attempt < maxTries) {
-								print("Attempt to upload %s failed. Retrying...", bitstreamInfo.getFilename());
+								print("Attempt to upload %s failed. Error: %s Retrying...", bitstreamInfo.getFilename(), e.getMessage());
 								Thread.sleep(10000L);
 							} else {
 								throw e;
