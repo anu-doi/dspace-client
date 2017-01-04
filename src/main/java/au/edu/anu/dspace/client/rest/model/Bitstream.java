@@ -107,11 +107,13 @@ public class Bitstream extends DSpaceObject {
 	
 	@Override
 	public String toString() {
-		return String.format(
-				"Bitstream [bundleName=%s, description=%s, format=%s, mimeType=%s, sizeBytes=%s, parentObject=%s, retrieveLink=%s, checksum=%s, sequenceId=%s, policies=%s]",
-				bundleName, description, format, mimeType, sizeBytes, parentObject, retrieveLink, checksum, sequenceId,
-				policies);
+		return "Bitstream [bundleName=" + bundleName + ", description=" + description + ", format=" + format
+				+ ", mimeType=" + mimeType + ", sizeBytes=" + sizeBytes + ", parentObject=" + parentObject
+				+ ", retrieveLink=" + retrieveLink + ", checksum=" + checksum + ", sequenceId=" + sequenceId
+				+ ", policies=" + policies + ", id=" + id + ", name=" + name + ", handle=" + handle + ", type=" + type
+				+ ", link=" + link + ", expand=" + expand + "]";
 	}
+	
 
 
 
