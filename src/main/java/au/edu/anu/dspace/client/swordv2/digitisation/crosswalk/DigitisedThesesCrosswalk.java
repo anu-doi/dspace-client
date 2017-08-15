@@ -41,7 +41,8 @@ public class DigitisedThesesCrosswalk extends AbstractCrosswalk {
 		
 		// dates published
 		List<String> datesPublished = extractDatesPublished(iiiRecord);
-		swordMetadata.add(SwordMetadata.DC_DATE_ISSUED, datesPublished);
+		//swordMetadata.add(SwordMetadata.DC_DATE_ISSUED, datesPublished);
+		swordMetadata.add(SwordMetadata.DC_DATE_CREATED, datesPublished);
 		
 		// dates copyrighted
 		List<String> datesCopyrighted = extractDatesCopyrighted(iiiRecord);
@@ -71,6 +72,7 @@ public class DigitisedThesesCrosswalk extends AbstractCrosswalk {
 		// dissertation notes
 		List<String> dissertationNotes = extractDissertationNotes(iiiRecord);
 		swordMetadata.add(SwordMetadata.DC_TYPE, dissertationNotes);
+		swordMetadata.add(SwordMetadata.LOCAL_DESCRIPTION_NOTES, dissertationNotes);
 		
 		// abstracts
 		List<String> abstracts = extractAbstracts(iiiRecord);
