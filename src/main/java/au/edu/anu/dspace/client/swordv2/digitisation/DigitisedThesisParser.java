@@ -174,21 +174,26 @@ public class DigitisedThesisParser extends AbstractParser {
 			// Request
 			if (!completedTheses.containsKey(bNumber)) {
 				IIIRECORD iiiRecord = catalogueSvc.retrieveCatalogueItem(bNumber);
-				Crosswalk crosswalk = item.getCrosswalk();
-				SwordMetadata metadata = crosswalk.generateMetadata(iiiRecord);
-				// use collection name if specified on command line, else use the one from the directory name
-				String targetCollectionName = this.collectionName != null ? this.collectionName
-						: item.getCollectionName();
-				SortedSet<BitstreamInfo> bitstreams = generateBitstreams(item.getFileset());
-				SwordRequestData data = new SwordRequestData(targetCollectionName, metadata, null, bitstreams,
-						inProgress);
-
-				log.info("Row {}", rowCount++);
-				log.info("\tCollection: {}", targetCollectionName);
-				log.info("\tMetadata: ({} items) {}", metadata.size(), metadata);
-				log.info("\tBitstreams: ({} items) {}", bitstreams.size(), bitstreams);
-
-				swordRequests.add(data);
+				if (iiiRecord != null && iiiRecord.getRecordInfo() != null) {
+					Crosswalk crosswalk = item.getCrosswalk();
+					SwordMetadata metadata = crosswalk.generateMetadata(iiiRecord);
+					// use collection name if specified on command line, else use the one from the directory name
+					String targetCollectionName = this.collectionName != null ? this.collectionName
+							: item.getCollectionName();
+					SortedSet<BitstreamInfo> bitstreams = generateBitstreams(item.getFileset());
+					SwordRequestData data = new SwordRequestData(targetCollectionName, metadata, null, bitstreams,
+							inProgress);
+	
+					log.info("Row {}", rowCount++);
+					log.info("\tCollection: {}", targetCollectionName);
+					log.info("\tMetadata: ({} items) {}", metadata.size(), metadata);
+					log.info("\tBitstreams: ({} items) {}", bitstreams.size(), bitstreams);
+	
+					swordRequests.add(data);
+				}
+				else {
+					log.error("Exception retrieving information for bNumber {}", bNumber);
+				}
 			} else {
 				log.info("Skipping {}. Already uploaded.", bNumber);
 			}
